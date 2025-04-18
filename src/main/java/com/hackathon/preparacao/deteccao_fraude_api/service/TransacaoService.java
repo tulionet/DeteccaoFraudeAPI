@@ -60,8 +60,8 @@ public class TransacaoService {
                     info,
                     destino
             );
-
             transacoes.add(transacao);
+        }
         return transacoes;
     }
 }
