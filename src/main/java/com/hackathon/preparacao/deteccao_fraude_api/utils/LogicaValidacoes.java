@@ -62,9 +62,7 @@ public class LogicaValidacoes {
         LocalDateTime hoje = LocalDateTime.now();
         LocalDateTime trintaDiasAtras = hoje.minusDays(30);
 
-        List<Transacao> ultimosTrintaDias = listaTransacao.stream()
-                .filter(t -> t.getDataTransacao().isAfter(trintaDiasAtras) && t.getDataTransacao().isBefore(hoje))
-                .collect(Collectors.toList());
+        List<Transacao> ultimosTrintaDias = transacoesPorPeriodo(trintaDiasAtras, hoje, listaTransacao);
 
         double maiorTransacaoTrintaDias = ultimosTrintaDias.stream()
                 .mapToDouble(Transacao::getSaldoTransacao)
@@ -75,19 +73,45 @@ public class LogicaValidacoes {
     }
 
     public boolean validarFraudeRecebedor(Transacao transacao) {
+        return transacaoService.validarFraudeRecebedor(transacao.getDestino().getIdDestino());
+    }
 
-        return true;
-    }
     public boolean validarLocalidadeGeografica(Transacao transacao) {
+        List<Transacao> listaTransacoes = getListaTransacao(transacao);
+        List<Transacao> listaTransacoesPorPeriodo = transacoesPorPeriodo(transacao.getDataTransacao(), transacao.getDataTransacao().minusDays(30), listaTransacoes);
+
+        Transacao ultimaTransacao = listaTransacoesPorPeriodo.stream()
+                .max((t1, t2) -> t1.getDataTransacao().compareTo(t2.getDataTransacao()))
+                .orElse(null);
+
+        if (ultimaTransacao != null) {
+            return transacaoService.verificaDistanciaLocalizacao(transacao.getLocalizacao(), ultimaTransacao.getLocalizacao());
+        }
+        return false;
+    }
+
+    public boolean validarHorarioIncomumTransacao(Transacao transacao) {
+        //TODO validação horario media das transacoes
         return true;
     }
-    public boolean validarHorarioTransacoes(Transacao transacao) {
-        return true;
-    }
+
     public boolean validarDispositvo(Transacao transacao) {
-        return true;
+        List<Transacao> listaTransacoes = getListaTransacao(transacao);
+        List<Transacao> listaTransacoesPorPeriodo = transacoesPorPeriodo(transacao.getDataTransacao(), transacao.getDataTransacao().minusDays(30), listaTransacoes);
+
+        Transacao ultimaTransacao = listaTransacoesPorPeriodo.stream()
+                .max((t1, t2) -> t1.getDataTransacao().compareTo(t2.getDataTransacao()))
+                .orElse(null);
+
+        if (ultimaTransacao != null) {
+            return !ultimaTransacao.equals(transacao);
+        }
+
+        return false;
     }
+
     public boolean validarPadraoTriangulo(Transacao transacao) {
+        // TODO
         return true;
     }
 
@@ -97,4 +121,5 @@ public class LogicaValidacoes {
                 .collect(Collectors.toList());
         return transacoesNoPeriodo;
     }
+
 }

@@ -29,7 +29,7 @@ public class TransacaoService {
 
     public List<Transacao> buscarListaTransacoesPorCliente(@PathVariable String id){
         /*
-        Lógica para pegar lista de gastos no banco de dados ou API.
+        TODO Lógica para pegar lista de gastos no banco de dados ou API.
         */
 
         List<Transacao> transacoes = new ArrayList<>();
@@ -64,5 +64,17 @@ public class TransacaoService {
             transacoes.add(transacao);
         }
         return transacoes;
+    }
+
+    public Boolean validarFraudeRecebedor(String idMercadorDestino) {
+        /*
+        TODO lógica pra pegar os dados do mercador
+        */
+        return true;
+    }
+
+    public boolean verificaDistanciaLocalizacao(Localizacao localizacao, Localizacao ultimaLocalizacao) {
+        //TODO lógica para verificar distancia
+        return true;
     }
 }
