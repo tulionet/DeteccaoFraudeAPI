@@ -19,7 +19,7 @@ public class LogicaValidacoes {
     }
 
     public boolean validarValorMedioGastoDiario(Transacao transacao) {
-        List<Transacao> listaTransacao = transacaoService.buscarListaDeGastosPorCliente(transacao.getUserId());
+        List<Transacao> listaTransacao = transacaoService.buscarListaTransacoesPorCliente(transacao.getUserId());
 
         LocalDateTime hoje = LocalDateTime.now();
         LocalDateTime trintaDiasAtras = hoje.minusDays(30);
@@ -34,12 +34,27 @@ public class LogicaValidacoes {
 
         double mediaDiaria = somaTotal / 30.0;
 
-        return transacao.getSaldoTransacao() <= (mediaDiaria * 3);
+        return transacao.getSaldoTransacao() >= (mediaDiaria * 3);
     }
 
     public boolean validarQuantidadeTransferencias(Transacao transacao) {
-        return true;
+        List<Transacao> listaTransacao = transacaoService.buscarListaTransacoesPorCliente(transacao.getUserId());
+
+        int qtdLimiteTransferencias = 5;
+        int espacoTempoTransferencias = 5;
+
+        long quantidadeTransacoes = listaTransacao.stream()
+                .filter(t -> t.getDataTransacao().isAfter(t.getDataTransacao().minusMinutes(espacoTempoTransferencias)))
+                .count();
+
+        if (qtdLimiteTransferencias >= quantidadeTransacoes) {
+            return false;
+        } else {
+            return true;
+        }
+
     }
+
     public boolean validarGrandeGasto(Transacao transacao) {
         return true;
     }

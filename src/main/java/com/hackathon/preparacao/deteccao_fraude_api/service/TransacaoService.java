@@ -27,13 +27,14 @@ public class TransacaoService {
         logicaValidacoes.validarValorMedioGastoDiario(transacao);
     }
 
-    public List<Transacao> buscarListaDeGastosPorCliente(@PathVariable String id){
+    public List<Transacao> buscarListaTransacoesPorCliente(@PathVariable String id){
         /*
         Lógica para pegar lista de gastos no banco de dados ou API.
         */
 
         List<Transacao> transacoes = new ArrayList<>();
 
+        //hardcode pra gerar transacoes
         for (int i = 1; i <= 10; i++) {
             Localizacao localizacao = new Localizacao();
             localizacao.setLatidute(-23.55000 + (i * 0.0001));
