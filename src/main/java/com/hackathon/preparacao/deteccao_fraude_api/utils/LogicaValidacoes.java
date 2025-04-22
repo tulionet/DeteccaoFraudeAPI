@@ -3,12 +3,11 @@ package com.hackathon.preparacao.deteccao_fraude_api.utils;
 import com.hackathon.preparacao.deteccao_fraude_api.domain.Transacao;
 import com.hackathon.preparacao.deteccao_fraude_api.service.TransacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +49,7 @@ public class LogicaValidacoes {
         int tempoEntreTransferencias = 5;
 
         long quantidadeTransacoes = listaTransacao.stream()
-                .filter(t -> t.getDataTransacao().isAfter(transacao.getDataTransacao().minusMinutes(tempoEntreTransferencias)))
+                .filter(t -> t.getDataTransacao().isAfter(LocalDateTime.now().minusMinutes(tempoEntreTransferencias)))
                 .count();
 
         return quantidadeTransacoes > qtdLimiteTransferencias;
@@ -82,11 +81,11 @@ public class LogicaValidacoes {
         List<Transacao> listaTransacoesPorPeriodo = transacoesPorPeriodo(transacao.getDataTransacao().minusDays(30), transacao.getDataTransacao(), listaTransacoes);
 
         Transacao ultimaTransacao = listaTransacoesPorPeriodo.stream()
-                .max((t1, t2) -> t1.getDataTransacao().compareTo(t2.getDataTransacao()))
+                .max(Comparator.comparing(Transacao::getDataTransacao))
                 .orElse(null);
 
         if (ultimaTransacao != null) {
-            return transacaoService.verificaDistanciaLocalizacao(transacao.getLocalizacao(), ultimaTransacao.getLocalizacao());
+            return transacaoService.verificaDistanciaLocalizacao(transacao, ultimaTransacao);
         }
         return false;
     }
@@ -108,8 +107,7 @@ public class LogicaValidacoes {
         LocalTime limiteSuperior = horarioMedio.plusMinutes(desvioPadrao.longValue());
 
         LocalTime horarioTransacao = transacao.getDataTransacao().toLocalTime();
-        return horarioTransacao.isBefore(limiteInferior) || horarioTransacao.isAfter(limiteSuperior);
-
+        return !(horarioTransacao.isBefore(limiteInferior) || horarioTransacao.isAfter(limiteSuperior));
     }
 
     public boolean validarDispositvo(Transacao transacao) {
@@ -117,7 +115,7 @@ public class LogicaValidacoes {
         List<Transacao> listaTransacoesPorPeriodo = transacoesPorPeriodo(transacao.getDataTransacao().minusDays(30), transacao.getDataTransacao(), listaTransacoes);
 
         Transacao ultimaTransacao = listaTransacoesPorPeriodo.stream()
-                .max((t1, t2) -> t1.getDataTransacao().compareTo(t2.getDataTransacao()))
+                .max(Comparator.comparing(Transacao::getDataTransacao))
                 .orElse(null);
 
         if (ultimaTransacao != null) {
@@ -129,14 +127,13 @@ public class LogicaValidacoes {
 
     public boolean validarPadraoTriangulo(Transacao transacao) {
         // TODO
-        return true;
+        return false;
     }
 
     private List<Transacao> transacoesPorPeriodo(LocalDateTime dataInicio, LocalDateTime dataFim, List<Transacao> listaTransacao ) {
-        List<Transacao> transacoesNoPeriodo = listaTransacao.stream()
+        return listaTransacao.stream()
                 .filter(t -> t.getDataTransacao().isAfter(dataInicio) && t.getDataTransacao().isBefore(dataFim))
                 .collect(Collectors.toList());
-        return transacoesNoPeriodo;
     }
 
     private LocalTime calcularHorarioMedio(List<LocalTime> horarios) {
